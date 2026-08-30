@@ -1,0 +1,12 @@
+# Gradle wrapper 스크립트는 OS별 줄바꿈 강제 (Windows 체크아웃에서도 gradlew 가 깨지지 않게)
+/gradlew           text eol=lf
+/gradlew.bat       text eol=crlf
+*.jar              binary
+
+# 자바 소스는 LF 통일
+*.java             text eol=lf
+*.gradle           text eol=lf
+*.properties       text eol=lf
+*.yml              text eol=lf
+*.xml              text eol=lf
+*.md               text eol=lf

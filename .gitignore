@@ -1,0 +1,31 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# 빌드 산출물
+bin/
+build/
+out/
+target/
+*.class
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# 로그
+*.log
+
+# 자격증명 (GitHub Packages 소비/게시 토큰 등 — 로컬은 ~/.gradle/gradle.properties 에 둔다)
+gradle-local.properties
+*.pem
+*.key
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# 기타 에디터
+.vscode/

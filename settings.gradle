@@ -1,0 +1,10 @@
+rootProject.name = 'groovy-common'
+
+// 6개 서비스 레포에 복붙되어 있던 공통 코드를 관심사별 모듈로 분리한 것.
+// 서비스는 필요한 모듈만 골라 의존한다 (모듈-서비스 매트릭스는 README 참고).
+include 'event-contract'   // Kafka 이벤트 봉투/payload (순수 record)
+include 'observability'    // 로그 포맷 + 분산 트레이싱 설정
+include 'web-common'       // ApiResponse / BaseTimeEntity / GlobalExceptionHandler 등
+include 'security-common'  // JWT 검증 필터 (발급자 identity-service 는 미사용)
+include 'client-common'    // 서비스 간 동기 호출 + Resilience4j 실행기
+include 'outbox'           // Transactional Outbox (study/calendar/content 만)

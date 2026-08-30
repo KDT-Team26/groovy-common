@@ -1,0 +1,49 @@
+// 서비스 레포 루트 build.gradle 과 같은 방식으로 io.spring.dependency-management 플러그인 버전을
+// 여기서 apply false 로 한 번만 선언한다 (web-common/security-common/client-common/outbox 모듈이
+// 이 플러그인을 쓴다).
+plugins {
+    id 'io.spring.dependency-management' version '1.1.7' apply false
+}
+
+subprojects {
+    apply plugin: 'maven-publish'
+
+    group = 'com.groovy.backend'
+    // 태그 릴리스 시 publish.yml 이 -PreleaseVersion=<tag> 로 덮어쓴다.
+    version = project.findProperty('releaseVersion') ?: '0.1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
+    // 각 모듈이 java-library 플러그인을 적용한 뒤에 sources jar + Maven publication 을 건다.
+    plugins.withId('java-library') {
+        java {
+            withSourcesJar()
+        }
+        publishing {
+            publications {
+                maven(MavenPublication) {
+                    from components.java
+                    // artifactId 는 서브프로젝트 이름 그대로 (event-contract, observability, ...)
+                }
+            }
+        }
+    }
+
+    // 게시 대상: GitHub Packages (KDT-Team26/groovy-common).
+    //  - CI(publish.yml): GITHUB_ACTOR + GITHUB_TOKEN(=secrets.GITHUB_TOKEN, packages:write) 자동
+    //  - 로컬 수동 게시: ~/.gradle/gradle.properties 의 gpr.user / gpr.key (write:packages PAT)
+    publishing {
+        repositories {
+            maven {
+                name = 'GitHubPackages'
+                url = uri('https://maven.pkg.github.com/KDT-Team26/groovy-common')
+                credentials {
+                    username = System.getenv('GITHUB_ACTOR') ?: (findProperty('gpr.user') ?: '')
+                    password = System.getenv('GITHUB_TOKEN') ?: (findProperty('gpr.key') ?: '')
+                }
+            }
+        }
+    }
+}
