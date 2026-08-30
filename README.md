@@ -67,20 +67,27 @@ dependencies {
 
 ---
 
-## 게시 (릴리스)
+## 릴리스 (release-please)
 
-```bash
-git tag v0.1.0 && git push origin v0.1.0
-```
-→ `.github/workflows/publish.yml` 이 6개 모듈을 `0.1.0` 으로 GitHub Packages 에 게시
-(`GITHUB_TOKEN` + `packages: write`, 별도 PAT 불필요).
+정규 릴리스는 **release-please** 가 자동화한다. 사람이 하는 건 **Release PR 머지 1번**뿐:
 
-로컬 수동 게시(디버깅용): `~/.gradle/gradle.properties` 에 `gpr.user` / `gpr.key`(`write:packages` PAT) 두고
+1. `main` 에 [Conventional Commits](https://www.conventionalcommits.org/) (`feat:` / `fix:` / `feat!:`) 가 쌓임
+2. `release-please.yml` 이 커밋을 분석해 **Release PR**(버전 bump + `CHANGELOG.md`)을 자동 생성/갱신
+3. 사람이 Release PR 을 머지 → GitHub Release + `vX.Y.Z` 태그 생성
+4. `publish` 잡이 `./gradlew build`(계약 테스트) 통과 시 6개 모듈을 `X.Y.Z` 로 GitHub Packages 에 게시
+5. 각 서비스 레포 Dependabot 이 감지 → 버전 bump PR → (patch/minor 자동 머지) → 재배포
+
+- 버전 규약: 0.x 동안 `feat` → minor, `fix` → patch, breaking(`!` / `BREAKING CHANGE`) → **minor**
+  (`release-please-config.json` 의 `bump-minor-pre-major`). 시작 버전 `0.0.0` → 첫 릴리스 `v0.1.0`.
+- 소비 측은 항상 정확한 버전 핀(`0.1.0`), `SNAPSHOT` 금지.
+
+### 수동 게시 (break-glass)
+
+특정 버전 재게시 / Release PR 없이 급히 내보낼 때: Actions → **Publish (manual)** → `version` 입력.
+로컬: `~/.gradle/gradle.properties` 에 `gpr.user` / `gpr.key`(`write:packages` PAT) 두고
 ```bash
 ./gradlew publish -PreleaseVersion=0.1.0
 ```
-
-버전 규칙: 소비 측은 항상 정확한 버전 핀(`0.1.0`), `SNAPSHOT` 금지.
 
 ---
 

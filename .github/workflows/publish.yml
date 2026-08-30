@@ -1,15 +1,12 @@
-# 태그(v*) push 시 6개 모듈을 GitHub Packages (Maven) 에 게시한다.
-# 소비 측(서비스 레포)은 read:packages PAT(조직 시크릿 GPR_TOKEN / 로컬 gpr.key)로 내려받는다.
-name: Publish to GitHub Packages
+# 수동 게시 (break-glass). 정규 릴리스는 release-please.yml 이 담당한다 —
+# 이 워크플로는 특정 버전을 다시 게시하거나, Release PR 절차 없이 급히 내보내야 할 때만 쓴다.
+name: Publish (manual)
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       version:
-        description: 게시할 버전 (예: 0.1.0). 비우면 0.1.0-SNAPSHOT
+        description: "게시할 버전 (예 0.1.0). 비우면 0.1.0-SNAPSHOT"
         required: false
         type: string
 
@@ -31,14 +28,7 @@ jobs:
 
       - name: Resolve version
         id: ver
-        run: |
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          elif [ -n "${{ inputs.version }}" ]; then
-            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=0.1.0-SNAPSHOT" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "value=${{ inputs.version || '0.1.0-SNAPSHOT' }}" >> "$GITHUB_OUTPUT"
 
       - name: Publish
         run: ./gradlew publish -PreleaseVersion=${{ steps.ver.outputs.value }} --no-daemon
@@ -49,12 +39,7 @@ jobs:
       - name: Summary
         run: |
           {
-            echo "### 게시 완료: \`${{ steps.ver.outputs.value }}\`"
+            echo "### 수동 게시 완료: \`${{ steps.ver.outputs.value }}\`"
             echo ""
-            echo "- com.groovy.backend:event-contract"
-            echo "- com.groovy.backend:observability"
-            echo "- com.groovy.backend:web-common"
-            echo "- com.groovy.backend:security-common"
-            echo "- com.groovy.backend:client-common"
-            echo "- com.groovy.backend:outbox"
+            echo "com.groovy.backend:{event-contract, observability, web-common, security-common, client-common, outbox}:${{ steps.ver.outputs.value }}"
           } >> "$GITHUB_STEP_SUMMARY"

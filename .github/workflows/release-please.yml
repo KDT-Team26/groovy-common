@@ -1,0 +1,68 @@
+# 릴리스 자동화 (release-please 패턴).
+#
+#  main 에 Conventional Commits 가 쌓임
+#   → release-please 가 "Release PR"(버전 bump + CHANGELOG)을 자동 생성/갱신
+#   → 사람이 Release PR 머지  ← 유일한 수동 단계
+#   → release-please 가 GitHub Release + vX.Y.Z 태그 생성
+#   → publish 잡이 build(계약 테스트) 통과 시 6개 모듈을 GitHub Packages 에 게시
+#   → (이후 Dependabot 이 각 서비스 레포로 전파)
+#
+# 버전 규약: 0.x 동안 feat=minor, fix=patch, breaking=minor(major 아님). release-please-config.json 참고.
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+      version: ${{ steps.rp.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: rp
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build (계약 테스트 게이트)
+        run: ./gradlew build --no-daemon --console=plain
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish -PreleaseVersion=${{ needs.release-please.outputs.version }} --no-daemon --console=plain
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          {
+            echo "### 릴리스 게시: \`${{ needs.release-please.outputs.tag_name }}\`"
+            echo ""
+            echo "com.groovy.backend:{event-contract, observability, web-common, security-common, client-common, outbox}:${{ needs.release-please.outputs.version }}"
+            echo ""
+            echo "→ 각 서비스 레포 Dependabot 이 감지해 버전 bump PR 을 연다."
+          } >> "$GITHUB_STEP_SUMMARY"
