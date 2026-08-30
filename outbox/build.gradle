@@ -1,0 +1,53 @@
+// study/calendar/content-service 에 byte-identical 로 복붙되어 있던 Transactional Outbox
+// (OutboxEvent/Repository/Writer/Relay + SchedulingConfig)를 모은다. notification-service 는
+// 소비 쪽이라 이 모듈을 쓰지 않는다.
+//
+// ⚠️ 소비 서비스가 해줘야 하는 배선 (JPA 스캔이 서비스 base 패키지 밖으로 나가므로):
+//   @SpringBootApplication(scanBasePackages = {"com.groovy.backend.<svc>", "com.groovy.backend.outbox"})
+//   @EntityScan(basePackages       = {"com.groovy.backend.<svc>", "com.groovy.backend.outbox"})
+//   @EnableJpaRepositories(basePackages = {"com.groovy.backend.<svc>", "com.groovy.backend.outbox"})
+//   그리고 SchedulingConfig 는 위 scanBasePackages 로 함께 잡히거나 @Import(SchedulingConfig.class).
+// (자세한 건 groovy-common README 의 "outbox 배선" 절 참고 — study-service 파일럿에서 확정.)
+plugins {
+	id 'java-library'
+	id 'io.spring.dependency-management'
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot:spring-boot-dependencies:4.1.0"
+	}
+}
+
+dependencies {
+	// OutboxEvent 는 web-common 의 BaseTimeEntity 를 상속하고, OutboxEventWriter 는
+	// event-contract 의 EventEnvelope 를 직렬화한다.
+	api project(':web-common')
+	api project(':event-contract')
+
+	// 실제 버전은 이 모듈을 쓰는 서비스가 이미 갖고 있는 걸 쓴다 (web-common 방식과 동일).
+	compileOnly 'org.springframework.boot:spring-boot-starter-data-jpa'
+	compileOnly 'org.springframework.kafka:spring-kafka'
+	compileOnly 'org.springframework:spring-context'
+	compileOnly 'io.micrometer:micrometer-tracing'
+	compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+	compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation platform('org.junit:junit-bom:5.11.4')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'org.assertj:assertj-core'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
