@@ -29,6 +29,9 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: rp
         with:
+          # 명시 안 하면 "레포 기본 브랜치"를 대상으로 삼는다 — 초기 부트스트랩 때 기본 브랜치가
+          # 아직 바뀌기 전이면 엉뚱한 브랜치를 대상으로 Release PR 을 만든다. main 으로 고정.
+          target-branch: main
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
