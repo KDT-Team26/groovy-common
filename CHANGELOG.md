@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/KDT-Team26/groovy-common/compare/v0.1.0...v0.2.0) (2026-09-10)
+
+
+### Features
+
+* **#14:** 요청 단위 로깅 필터 추가 ([0a7ff52](https://github.com/KDT-Team26/groovy-common/commit/0a7ff52596641e357dad5d5cad6cd11c504dec57))
+
 ## 0.1.0 (2026-08-30)
 
 
