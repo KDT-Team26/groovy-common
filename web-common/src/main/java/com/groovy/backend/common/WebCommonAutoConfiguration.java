@@ -4,7 +4,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.Ordered;
 
 import com.groovy.backend.common.auth.JwtAuthenticationEntryPoint;
 import com.groovy.backend.common.exception.GlobalExceptionHandler;
@@ -30,12 +29,14 @@ public class WebCommonAutoConfiguration {
 		return new JwtAuthenticationEntryPoint();
 	}
 
-	// 필터 체인 가장 바깥에 둬서 JwtAuthenticationFilter에서 거부된 요청(401 등)도 로그에 남는다.
+	// 순서를 지정하지 않으면 기본값(LOWEST_PRECEDENCE)이라 Security/observation 필터보다 안쪽에서
+	// 실행된다 — Span이 아직 열려있는 동안 로그를 찍어야 TraceIdTurboFilter가 traceId를 MDC에
+	// 붙여줄 수 있다(observation 필터 바깥에 두면 doFilter()가 반환된 시점엔 이미 span이 종료돼
+	// traceId가 안 붙는다). 대신 JwtAuthenticationFilter가 거부한 요청(401 등)은 체인이 여기까지
+	// 안 와서 로그에 안 남는다 — 이번엔 정상 처리된 요청의 trace 연결을 우선하기로 함.
 	@Bean
 	@ConditionalOnProperty(name = "logging.request.enabled", havingValue = "true", matchIfMissing = true)
 	public FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilter() {
-		FilterRegistrationBean<RequestLoggingFilter> registration = new FilterRegistrationBean<>(new RequestLoggingFilter());
-		registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
-		return registration;
+		return new FilterRegistrationBean<>(new RequestLoggingFilter());
 	}
 }
