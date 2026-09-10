@@ -1,10 +1,14 @@
 package com.groovy.backend.common;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
 
 import com.groovy.backend.common.auth.JwtAuthenticationEntryPoint;
 import com.groovy.backend.common.exception.GlobalExceptionHandler;
+import com.groovy.backend.common.logging.RequestLoggingFilter;
 
 /**
  * GlobalExceptionHandler(@RestControllerAdvice)와 JwtAuthenticationEntryPoint(@Component)는
@@ -24,5 +28,14 @@ public class WebCommonAutoConfiguration {
 	@Bean
 	public JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint() {
 		return new JwtAuthenticationEntryPoint();
+	}
+
+	// 필터 체인 가장 바깥에 둬서 JwtAuthenticationFilter에서 거부된 요청(401 등)도 로그에 남는다.
+	@Bean
+	@ConditionalOnProperty(name = "logging.request.enabled", havingValue = "true", matchIfMissing = true)
+	public FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilter() {
+		FilterRegistrationBean<RequestLoggingFilter> registration = new FilterRegistrationBean<>(new RequestLoggingFilter());
+		registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		return registration;
 	}
 }
