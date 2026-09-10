@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/KDT-Team26/groovy-common/compare/v0.2.0...v0.2.1) (2026-09-10)
+
+
+### Bug Fixes
+
+* **#14:** RequestLoggingFilter가 traceId 없이 찍히던 문제 수정 ([89d912c](https://github.com/KDT-Team26/groovy-common/commit/89d912ca2f9dba581bd9e65781d8ef10e1306593))
+
 ## [0.2.0](https://github.com/KDT-Team26/groovy-common/compare/v0.1.0...v0.2.0) (2026-09-10)
 
 
