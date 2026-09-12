@@ -1,16 +1,16 @@
 package com.groovy.backend.client;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.client.RestClient;
 
 /**
- * UserServiceClient는 com.groovy.backend.client 패키지에 있어 각 서비스의 기본 컴포넌트 스캔
- * 범위(com.groovy.backend.&lt;service&gt;)에 들어오지 않는다 — libs:web-common/libs:security-common과
- * 동일한 이유로 Spring Boot 자동 설정으로 명시적으로 빈을 등록한다. calendar-service처럼
- * UserServiceClient를 안 쓰는 서비스에도 빈은 만들어지지만(사용하지 않으면 그냥 무해하게
- * 남아있음), identity-service.url 등 기본값이 있어 설정을 안 해도 기동에는 문제없다.
+ * study/content-service처럼 spring-boot-starter-data-redis를 붙이고 REDIS_HOST/PORT를 설정한 서비스는 이름 캐시가 켜지고,
+ * calendar-service처럼 redis 의존성 자체가 없는 서비스는 getIfAvailable()이 null을 돌려줘
+ * 캐시 없이(기존과 동일하게 매번 identity-service 직접 호출) 동작한다.
  */
 @AutoConfiguration
 public class ClientCommonAutoConfiguration {
@@ -20,8 +20,11 @@ public class ClientCommonAutoConfiguration {
 		RestClient.Builder restClientBuilder,
 		@Value("${identity-service.url:http://identity-service:8081}") String identityServiceUrl,
 		@Value("${identity-service.connect-timeout-ms:2000}") long connectTimeoutMs,
-		@Value("${identity-service.read-timeout-ms:3000}") long readTimeoutMs
+		@Value("${identity-service.read-timeout-ms:3000}") long readTimeoutMs,
+		ObjectProvider<StringRedisTemplate> redisTemplateProvider,
+		@Value("${identity-service.name-cache-ttl-seconds:86400}") long nameCacheTtlSeconds
 	) {
-		return new UserServiceClient(restClientBuilder, identityServiceUrl, connectTimeoutMs, readTimeoutMs);
+		return new UserServiceClient(restClientBuilder, identityServiceUrl, connectTimeoutMs, readTimeoutMs,
+			redisTemplateProvider.getIfAvailable(), nameCacheTtlSeconds);
 	}
 }
