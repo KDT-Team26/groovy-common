@@ -1,8 +1,5 @@
 // study/calendar/content-service에 복붙되어 있던 서비스 간 동기 HTTP 클라이언트
-// (UserServiceClient/StudyServiceClient/TagPreferenceClient)가 공통으로 쓸 CircuitBreaker+Retry
-// 실행기(ResilientCallExecutor)를 모은다. 100% 동일했던 UserServiceClient(study/content-service)는
-// 아예 이 모듈로 옮겼다. StudyServiceClient/TagPreferenceClient는 서비스마다 쓰는 메서드가 달라
-// 그대로 로컬에 두고, 실행기만 여기서 가져다 쓴다.
+
 plugins {
 	id 'java-library'
 	id 'io.spring.dependency-management'
@@ -23,6 +20,8 @@ dependencyManagement {
 dependencies {
 	compileOnly 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
+	// UserServiceClient의 이름 캐시(cache-aside)가 쓰는 StringRedisTemplate 타입
+	compileOnly 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	implementation project(':web-common')
 
@@ -37,6 +36,7 @@ dependencies {
 	testImplementation 'org.assertj:assertj-core'
 	testImplementation 'com.fasterxml.jackson.core:jackson-databind'
 	testImplementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
