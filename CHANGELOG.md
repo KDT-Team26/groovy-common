@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/KDT-Team26/groovy-common/compare/v0.2.1...v0.3.0) (2026-09-12)
+
+
+### Features
+
+* **#19:** UserServiceClient에 Redis 캐시 적용 ([fc40899](https://github.com/KDT-Team26/groovy-common/commit/fc40899c75f3a4415cfb003338dd29ee899c2a46))
+* **#19:** UserServiceClient에 Redis 캐시 적용 ([cbd1f74](https://github.com/KDT-Team26/groovy-common/commit/cbd1f74d2c83577bc705eac0d319eb78428a96a6))
+
 ## [0.2.1](https://github.com/KDT-Team26/groovy-common/compare/v0.2.0...v0.2.1) (2026-09-10)
 
 
